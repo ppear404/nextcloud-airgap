@@ -27,7 +27,7 @@ id_*
 
 # Env / creds
 .env
-.env.*
+#.env.*
 *.env
 *.secret
 secrets.*
