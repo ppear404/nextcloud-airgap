@@ -1,0 +1,29 @@
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+  turn:
+    address: ":3478/udp"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    network: "proxy"
+    exposedByDefault: false
+  file:
+    directory: "/etc/traefik/dynamic"
+    watch: true
+api:
+  dashboard: true
+ping: {}
+
+log:
+  level: INFO
+accessLog:
+  filePath: "/var/log/traefik/access.log"

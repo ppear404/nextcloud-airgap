@@ -1,0 +1,46 @@
+# Ignore the certs
+./certs/*
+
+# Ignore the environment variables file
+./.env
+
+# traefik/logs 
+./traefik/logs/access.log
+
+# Debug log captures
+./logs/containers/
+
+# notes
+./docs/
+
+# Secrets
+*.pem
+*.key
+*.p12
+*.pfx
+*.p7b
+*.jks
+id_*
+*.keystore
+*.kdbx
+*.gpg
+
+# Env / creds
+.env
+.env.*
+*.env
+*.secret
+secrets.*
+credentials.*
+*.kube/config
+
+# DB / dumps
+*.sqlite
+*.db
+dump*.sql
+
+# Build & deps (adjust to your stack)
+node_modules/
+dist/
+build/
+.cache/

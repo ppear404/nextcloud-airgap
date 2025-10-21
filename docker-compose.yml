@@ -1,0 +1,226 @@
+services:
+  db:
+    image: mariadb:10.6
+    container_name: nextcloud-db
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u${MYSQL_USER} -p${MYSQL_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  app:
+    user: "0:0"
+    image: nextcloud
+    container_name: nextcloud-app
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - nextcloud:/var/www/html
+      - ./certs:/certs:ro
+      - ./appapi-bootstrap.sh:/appapi-bootstrap.sh:ro
+      - ./nextcloud-entrypoint.sh:/app-entrypoint.sh:ro
+    environment:
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_HOST=db
+      - NC_INSTANCE_URL=${NC_INSTANCE_URL}
+      - NEXTCLOUD_TRUSTED_DOMAINS=${NEXTCLOUD_TRUSTED_DOMAINS}
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES}
+      - OVERWRITEHOST=${OVERWRITEHOST}
+      - OVERWRITEPROTOCOL=${OVERWRITEPROTOCOL}
+      - OVERWRITECLIURL=${OVERWRITECLIURL}
+      - FORWARDED_FOR_HEADERS=${FORWARDED_FOR_HEADERS}
+      # TLS/SSL
+      - SSL_CERT_DIR=${SSL_CERT_DIR:-/etc/ssl/certs}
+      - SSL_CERT_FILE=${SSL_CERT_FILE:-/certs/custom-ca-bundle.pem}
+      - CURL_CA_BUNDLE=${CURL_CA_BUNDLE:-/certs/custom-ca-bundle.pem}
+      - REQUESTS_CA_BUNDLE=${REQUESTS_CA_BUNDLE:-/certs/custom-ca-bundle.pem}
+      - HP_SHARED_KEY=${HP_SHARED_KEY}
+      # Collabora Online settings
+      - COLLABORA_ENABLE=${COLLABORA_ENABLE:-true}
+      - COLLABORA_URL=${COLLABORA_URL:-https://collabora-dev.lan}
+      - COLLABORA_PUBLIC_URL=${COLLABORA_PUBLIC_URL:-}
+      - COLLABORA_CALLBACK_URL=${COLLABORA_CALLBACK_URL:-}
+      - COLLABORA_VERIFY_TLS=${COLLABORA_VERIFY_TLS:-true}
+      # AppAPI settings
+      - APPAPI_ENABLE=${APPAPI_ENABLE}
+      - APPAPI_DAEMON_NAME=${APPAPI_DAEMON_NAME}
+      - APPAPI_DAEMON_DISPLAY_NAME=${APPAPI_DAEMON_DISPLAY_NAME}
+      - APPAPI_DEPLOY_METHOD=${APPAPI_DEPLOY_METHOD}
+      - APPAPI_DAEMON_PROTOCOL=${APPAPI_DAEMON_PROTOCOL}
+      - APPAPI_DAEMON_HOST=${APPAPI_DAEMON_HOST}
+      - APPAPI_DAEMON_NETWORK=${APPAPI_DAEMON_NETWORK}
+      - APPAPI_COMPUTE_DEVICE=${APPAPI_COMPUTE_DEVICE}
+      - APPAPI_SET_DEFAULT=${APPAPI_SET_DEFAULT}
+      - APPAPI_ENABLE_HARP=${APPAPI_ENABLE_HARP}
+      - APPAPI_HARP_FRP_ADDRESS=${APPAPI_HARP_FRP_ADDRESS}
+      - APPAPI_HARP_DOCKER_SOCKET_PORT=${APPAPI_HARP_DOCKER_SOCKET_PORT}
+      - APPAPI_HARP_EXAPP_DIRECT=${APPAPI_HARP_EXAPP_DIRECT}
+      - APPAPI_NEXTCLOUD_URL=${APPAPI_NEXTCLOUD_URL}
+      - TALK_HOST=${TALK_HOST:-}
+      - TALK_PORT=${TALK_PORT:-3478}
+      - SIGNALING_SECRET=${SIGNALING_SECRET:-}
+      - TURN_SECRET=${TURN_SECRET:-}
+      - TALK_SIGNALING_URL=${TALK_SIGNALING_URL:-}
+      - TALK_VERIFY_TLS=${TALK_VERIFY_TLS:-true}
+      - TALK_STUN_SERVER=${TALK_STUN_SERVER:-}
+      - TALK_TURN_SERVER=${TALK_TURN_SERVER:-}
+      - TALK_TURN_SCHEMES=${TALK_TURN_SCHEMES:-}
+      - TALK_TURN_PROTOCOLS=${TALK_TURN_PROTOCOLS:-}
+      - TALK_HIDE_WARNING=${TALK_HIDE_WARNING:-false}
+      - TALK_HPB_ENABLE=${TALK_HPB_ENABLE:-true}
+    networks:
+      - default
+      - proxy
+    entrypoint: /app-entrypoint.sh
+    command: apache2-foreground
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud-dev.lan`)"
+      - "traefik.http.routers.nextcloud.entrypoints=websecure"
+      - "traefik.http.routers.nextcloud.tls=true"
+      - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
+      - "traefik.http.routers.nextcloud.service=nextcloud"
+      - "traefik.http.routers.nextcloud-private.rule=HostRegexp(`{ip:(10|192\\\\.168|172\\\\.(1[6-9]|2[0-9]|3[0-1]))\\\\.[0-9]+\\\\.[0-9]+\\\\.[0-9]+}`)"
+      - "traefik.http.routers.nextcloud-private.entrypoints=websecure"
+      - "traefik.http.routers.nextcloud-private.tls=true"
+      - "traefik.http.routers.nextcloud-private.service=nextcloud"
+      - "traefik.http.routers.nextcloud-private.middlewares=nextcloud-ip-host@docker"
+      - "traefik.http.middlewares.nextcloud-ip-host.headers.customrequestheaders.Host=${OVERWRITEHOST:-nextcloud-dev.lan}"
+    extra_hosts:
+      - "${APP_EXTRA_HOST1:-nextcloud-dev.lan:host-gateway}"
+      - "${APP_EXTRA_HOST2:-talk-dev.lan:host-gateway}"
+      - "${APP_EXTRA_HOST3:-collabora-dev.lan:host-gateway}"
+
+  nextcloud-harp:
+    image: ghcr.io/nextcloud/nextcloud-appapi-harp:release
+    container_name: nextcloud-harp
+    restart: unless-stopped
+    environment:
+      - HP_SHARED_KEY=${HP_SHARED_KEY}
+      - NC_INSTANCE_URL=${NC_INSTANCE_URL}
+      - HP_EXAPPS_ADDRESS=${HP_EXAPPS_ADDRESS}
+      - HP_LOG_LEVEL=${HP_LOG_LEVEL}
+      - NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS:-/certs/custom-ca-bundle.pem}
+      - SSL_CERT_FILE=${SSL_CERT_FILE:-/certs/custom-ca-bundle.pem}
+      - CURL_CA_BUNDLE=${CURL_CA_BUNDLE:-/certs/custom-ca-bundle.pem}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./certs:/certs
+    networks:
+      - proxy
+    depends_on:
+      app:
+        condition: service_started
+    extra_hosts:
+      - "${APP_EXTRA_HOST1:-nextcloud-dev.lan:host-gateway}"
+      - "${APP_EXTRA_HOST2:-talk-dev.lan:host-gateway}"
+      - "${APP_EXTRA_HOST3:-collabora-dev.lan:host-gateway}"
+
+  nextcloud-hpb:
+    image: ghcr.io/nextcloud-releases/aio-talk:latest
+    container_name: nextcloud-hpb
+    environment:
+      - NC_DOMAIN=${NC_DOMAIN}
+      - TALK_PORT=${TALK_PORT}
+      - TALK_HOST=${TALK_HOST}
+      - TURN_SECRET=${TURN_SECRET}
+      - SIGNALING_SECRET=${SIGNALING_SECRET}
+      - INTERNAL_SECRET=${INTERNAL_SECRET}
+      - SSL_CERT_FILE=${SSL_CERT_FILE:-/certs/custom-ca-bundle.pem}
+      - NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS:-/certs/custom-ca-bundle.pem}
+      - CURL_CA_BUNDLE=${CURL_CA_BUNDLE:-/certs/custom-ca-bundle.pem}
+    networks:
+      - proxy
+    volumes:
+      - ./certs:/certs:ro
+    extra_hosts:
+      - "${APP_EXTRA_HOST1:-nextcloud-dev.lan:host-gateway}"
+      - "${APP_EXTRA_HOST2:-talk-dev.lan:host-gateway}"
+      - "${APP_EXTRA_HOST3:-collabora-dev.lan:host-gateway}"
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+
+      # --- HTTPS/WSS signaling over Traefik on 443 ---
+      - "traefik.http.routers.hpb.rule=Host(`talk-dev.lan`)"
+      - "traefik.http.routers.hpb.entrypoints=websecure"
+      - "traefik.http.routers.hpb.tls=true"
+      - "traefik.http.services.hpb.loadbalancer.server.port=8081"
+      - "traefik.http.routers.hpb.service=hpb"
+
+      # --- WebSocket passthrough fix ---
+      - "traefik.http.middlewares.hpb-ws.headers.customRequestHeaders.Connection=Upgrade"
+      - "traefik.http.middlewares.hpb-ws.headers.customRequestHeaders.Upgrade=websocket"
+      - "traefik.http.routers.hpb.middlewares=hpb-ws@docker"
+
+      # --- TURN over UDP on 3478 via Traefik ---
+      - "traefik.udp.routers.turn.entrypoints=turn"
+      - "traefik.udp.routers.turn.service=turn"
+      - "traefik.udp.services.turn.loadbalancer.server.port=3478"
+
+  nextcloud-collab:
+    image: collabora/code
+    container_name: nextcloud-collab
+    environment:
+      - aliasgroup1=https://nextcloud-dev.lan
+      - aliasgroup2=https?://10\\.[0-9]+\\.[0-9]+\\.[0-9]+
+      - aliasgroup3=https?://192\\.168\\.[0-9]+\\.[0-9]+
+      - aliasgroup4=https?://172\\.(1[6-9]|2[0-9]|3[0-1])\\.[0-9]+\\.[0-9]+
+      - aliasgroup5=https?://127\\.0\\.0\\.1
+      - aliasgroup6=https?://localhost
+      - extra_params=--o:ssl.enable=false --o:ssl.termination=true --o:ssl.ca_file=/certs/custom-ca-bundle.pem
+    networks:
+      - proxy
+    volumes:
+      - ./certs:/certs:ro
+    extra_hosts:
+      - "${APP_EXTRA_HOST1:-nextcloud-dev.lan:host-gateway}"
+      - "${APP_EXTRA_HOST2:-talk-dev.lan:host-gateway}"
+      - "${APP_EXTRA_HOST3:-collabora-dev.lan:host-gateway}"
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.collabora.rule=Host(`collabora-dev.lan`)"
+      - "traefik.http.routers.collabora.entrypoints=websecure"
+      - "traefik.http.routers.collabora.tls=true"
+      - "traefik.http.services.collabora.loadbalancer.server.port=9980"
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "3478:3478/udp"    # nextcloud-hpb
+    networks:
+      - proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/logs:/var/log/traefik  
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./certs:/etc/traefik/certs:ro
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  db:
+  nextcloud:
