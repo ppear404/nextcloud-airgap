@@ -1,0 +1,24 @@
+[ req ]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+
+[ dn ]
+C = US
+ST = Dev
+L = Dev
+O = Nextcloud Development
+OU = Local
+CN = nextcloud-dev.lan
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+# Request EKUs: server and client auth
+extendedKeyUsage = serverAuth, clientAuth
+
+[ alt_names ]
+DNS.1 = nextcloud-dev.lan
+DNS.2 = nextcloud-dev
