@@ -1,11 +1,11 @@
 tls:
   certificates:
-    - certFile: ../nextcloud/certs/nextcloud-dev.pem
-      keyFile: ../nextcloud/certs/nextcloud-dev-key.pem
-    - certFile: ../nextcloud/certs/talk-dev.lan.pem
-      keyFile: ../nextcloud/certs/talk-dev.lan-key.pem
-    - certFile: ../nextcloud/certs/collabora-dev.lan.pem
-      keyFile: ../nextcloud/certs/collabora-dev.lan-key.pem
+    - certFile: /etc/traefik/certs/nextcloud-dev.pem
+      keyFile: /etc/traefik/certs/nextcloud-dev-key.pem
+    - certFile: /etc/traefik/certs/talk-dev.lan.pem
+      keyFile: /etc/traefik/certs/talk-dev.lan-key.pem
+    - certFile: /etc/traefik/certs/collabora-dev.lan.pem
+      keyFile: /etc/traefik/certs/collabora-dev.lan-key.pem
   stores:
     default:
       defaultCertificate:
