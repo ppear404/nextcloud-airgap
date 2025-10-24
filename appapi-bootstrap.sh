@@ -129,6 +129,9 @@ fi
 log "Allowing local outbound requests to this host."
 occ config:system:set allow_local_remote_servers --type=bool --value=true >/dev/null
 
+log "Setting maintenance window start to 01:00."
+occ config:system:set maintenance_window_start --type=integer --value=1 >/dev/null
+
 if ! install_app "app_management" "false"; then
   log "Optional app 'app_management' is unavailable; continuing without it."
 else
