@@ -25,6 +25,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      nextcloud-hpb:
+        condition: service_started
     volumes:
       - nextcloud:/var/www/html
       - ./certs:/certs:ro

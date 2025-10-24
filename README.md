@@ -89,3 +89,18 @@ Use `scripts/collect-logs.sh` to stream each container's stdout/stderr into indi
 ```
 
 Each run truncates the previous file (for example `logs/containers/nextcloud-app.log`) before appending new output, which helps keep snapshots focused on the current debugging session.
+
+## Setup Cron to call the cron.php file every 5 minutes (vendor recommendation)
+
+### Test directly inside the container
+```bash
+docker exec -u www-data nextcloud-app php -f /var/www/html/cron.php
+```
+
+### Leverage cron on the container platform
+```bash
+*/5 * * * * docker exec -u www-data nextcloud-app-1 php -f /var/www/html/cron.php
+```
+
+
+
