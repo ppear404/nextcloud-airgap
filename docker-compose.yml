@@ -122,6 +122,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./certs:/certs
+      - ./harp/haproxy.cfg:/haproxy.cfg:ro
     networks:
       - proxy
     depends_on:
@@ -131,6 +132,11 @@ services:
       - "${APP_EXTRA_HOST1:-nextcloud-dev.lan:host-gateway}"
       - "${APP_EXTRA_HOST2:-talk-dev.lan:host-gateway}"
       - "${APP_EXTRA_HOST3:-collabora-dev.lan:host-gateway}"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8780/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   nextcloud-hpb:
     image: ghcr.io/nextcloud-releases/aio-talk:latest
