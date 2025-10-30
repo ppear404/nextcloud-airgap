@@ -102,6 +102,13 @@ services:
       - "traefik.http.routers.nextcloud-private.service=nextcloud"
       - "traefik.http.routers.nextcloud-private.middlewares=nextcloud-ip-host@docker"
       - "traefik.http.middlewares.nextcloud-ip-host.headers.customrequestheaders.Host=${OVERWRITEHOST:-nextcloud-dev.lan}"
+      # --- HSTS headers (force HTTPS for 180 days on subdomains) ---
+      - "traefik.http.middlewares.hsts.headers.stsSeconds=15552000"
+      - "traefik.http.middlewares.hsts.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.hsts.headers.forceSTSHeader=true"
+      # --- Apply it to the router ---
+      - "traefik.http.routers.nextcloud.middlewares=hsts@docker"
+
     extra_hosts:
       - "${APP_EXTRA_HOST1:-nextcloud-dev.lan:host-gateway}"
       - "${APP_EXTRA_HOST2:-talk-dev.lan:host-gateway}"
@@ -132,11 +139,6 @@ services:
       - "${APP_EXTRA_HOST1:-nextcloud-dev.lan:host-gateway}"
       - "${APP_EXTRA_HOST2:-talk-dev.lan:host-gateway}"
       - "${APP_EXTRA_HOST3:-collabora-dev.lan:host-gateway}"
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8780/ || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
 
   nextcloud-hpb:
     image: ghcr.io/nextcloud-releases/aio-talk:latest

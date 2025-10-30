@@ -1,0 +1,2 @@
+# run command in the nc app container or as -u www-data on nc web server
+php -f /var/www/html/occ db:add-missing-indices

@@ -1,0 +1,2 @@
+# Use the command `occ maintenance:repair --include-expensive` to perform the migrations
+php -f /var/www/html/occ maintenance:repair --include-expensive
