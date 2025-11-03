@@ -98,7 +98,7 @@ services:
     - "traefik.http.routers.nextcloud-pub.tls=true"
     - "traefik.http.routers.nextcloud-pub.service=nextcloud"
     - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
-    - "traefik.http.routers.nextcloud-pub.middlewares=hsts@docker"
+    - "traefik.http.routers.nextcloud-pub.middlewares=hsts@docker,nextcloud-httpsheader@docker,nextcloud-fwdhost@docker,nextcloud-fwdport@docker"
 
     # --- Private router (optional) ---
     - "traefik.http.routers.nextcloud-private.rule=HostRegexp(`{ip:(10|192\\\\.168|172\\\\.(1[6-9]|2[0-9]|3[0-1]))\\\\.[0-9]+\\\\.[0-9]+\\\\.[0-9]+}`)"
@@ -118,6 +118,11 @@ services:
     - "traefik.http.middlewares.hsts.headers.stsSeconds=15552000"
     - "traefik.http.middlewares.hsts.headers.stsIncludeSubdomains=true"
     - "traefik.http.middlewares.hsts.headers.forceSTSHeader=true"
+    - "traefik.http.middlewares.nextcloud-httpsheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+    - "traefik.http.middlewares.nextcloud-fwdhost.headers.customrequestheaders.X-Forwarded-Host=nextcloud-1233.ppear.net"
+    - "traefik.http.middlewares.nextcloud-httpsheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+    - "traefik.http.middlewares.nextcloud-fwdhost.headers.customrequestheaders.X-Forwarded-Host=nextcloud-1233.ppear.net"
+    - "traefik.http.middlewares.nextcloud-fwdport.headers.customrequestheaders.X-Forwarded-Port=443"
 
     extra_hosts:
       - "${APP_EXTRA_HOST1:-nextcloud-dev.lan:host-gateway}"
