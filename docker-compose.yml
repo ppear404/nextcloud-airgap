@@ -89,25 +89,35 @@ services:
     entrypoint: /app-entrypoint.sh
     command: apache2-foreground
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=proxy"
-      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud-dev.lan`)"
-      - "traefik.http.routers.nextcloud.entrypoints=websecure"
-      - "traefik.http.routers.nextcloud.tls=true"
-      - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
-      - "traefik.http.routers.nextcloud.service=nextcloud"
-      - "traefik.http.routers.nextcloud-private.rule=HostRegexp(`{ip:(10|192\\\\.168|172\\\\.(1[6-9]|2[0-9]|3[0-1]))\\\\.[0-9]+\\\\.[0-9]+\\\\.[0-9]+}`)"
-      - "traefik.http.routers.nextcloud-private.entrypoints=websecure"
-      - "traefik.http.routers.nextcloud-private.tls=true"
-      - "traefik.http.routers.nextcloud-private.service=nextcloud"
-      - "traefik.http.routers.nextcloud-private.middlewares=nextcloud-ip-host@docker"
-      - "traefik.http.middlewares.nextcloud-ip-host.headers.customrequestheaders.Host=${OVERWRITEHOST:-nextcloud-dev.lan}"
-      # --- HSTS headers (force HTTPS for 180 days on subdomains) ---
-      - "traefik.http.middlewares.hsts.headers.stsSeconds=15552000"
-      - "traefik.http.middlewares.hsts.headers.stsIncludeSubdomains=true"
-      - "traefik.http.middlewares.hsts.headers.forceSTSHeader=true"
-      # --- Apply it to the router ---
-      - "traefik.http.routers.nextcloud.middlewares=hsts@docker"
+    - "traefik.enable=true"
+    - "traefik.docker.network=proxy"
+
+    # --- Public router (Cloudflare) ---
+    - "traefik.http.routers.nextcloud-pub.rule=Host(`nextcloud-1233.ppear.net`)"
+    - "traefik.http.routers.nextcloud-pub.entrypoints=websecure"
+    - "traefik.http.routers.nextcloud-pub.tls=true"
+    - "traefik.http.routers.nextcloud-pub.service=nextcloud"
+    - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
+    - "traefik.http.routers.nextcloud-pub.middlewares=hsts@docker"
+
+    # --- Private router (optional) ---
+    - "traefik.http.routers.nextcloud-private.rule=HostRegexp(`{ip:(10|192\\\\.168|172\\\\.(1[6-9]|2[0-9]|3[0-1]))\\\\.[0-9]+\\\\.[0-9]+\\\\.[0-9]+}`)"
+    - "traefik.http.routers.nextcloud-private.entrypoints=websecure"
+    - "traefik.http.routers.nextcloud-private.tls=true"
+    - "traefik.http.routers.nextcloud-private.service=nextcloud"
+    - "traefik.http.routers.nextcloud-private.middlewares=nextcloud-ip-host@docker"
+
+    # --- LAN hostname router ---
+    - "traefik.http.routers.nextcloud-lan.rule=Host(`nextcloud-dev.lan`)"
+    - "traefik.http.routers.nextcloud-lan.entrypoints=websecure"
+    - "traefik.http.routers.nextcloud-lan.tls=true"
+    - "traefik.http.routers.nextcloud-lan.service=nextcloud"
+
+    # --- Middleware definitions ---
+    - "traefik.http.middlewares.nextcloud-ip-host.headers.customrequestheaders.Host=${OVERWRITEHOST:-nextcloud-1233.ppear.net}"
+    - "traefik.http.middlewares.hsts.headers.stsSeconds=15552000"
+    - "traefik.http.middlewares.hsts.headers.stsIncludeSubdomains=true"
+    - "traefik.http.middlewares.hsts.headers.forceSTSHeader=true"
 
     extra_hosts:
       - "${APP_EXTRA_HOST1:-nextcloud-dev.lan:host-gateway}"
