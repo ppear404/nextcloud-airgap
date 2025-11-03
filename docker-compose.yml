@@ -113,6 +113,7 @@ services:
       - "${APP_EXTRA_HOST1:-nextcloud-dev.lan:host-gateway}"
       - "${APP_EXTRA_HOST2:-talk-dev.lan:host-gateway}"
       - "${APP_EXTRA_HOST3:-collabora-dev.lan:host-gateway}"
+      - "openproject-dev.lan:172.23.0.3"
 
   nextcloud-harp:
     image: ghcr.io/nextcloud/nextcloud-appapi-harp:release
