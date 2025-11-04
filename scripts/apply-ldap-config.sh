@@ -75,7 +75,7 @@ ldapBaseUsers="ou=general_users,dc=1233lab,dc=local"
 # ldapCacheTTL sets the LDAP cache time-to-live in seconds.
 ldapCacheTTL=600
 # ldapConfigurationActive toggles whether this LDAP configuration is active (0 disabled, 1 enabled).
-ldapConfigurationActive=1
+ldapConfigurationActive=0
 # ldapConnectionTimeout sets the timeout in seconds when connecting to the LDAP server.
 ldapConnectionTimeout=15
 # ldapDefaultPPolicyDN holds the DN of the default password policy (ppolicy) object if used.
@@ -185,6 +185,40 @@ apply_ldap_config() {
     return 1
   fi
 
+  local -a occ_cmd=(docker exec --user www-data "${container}" php occ)
+
+  if ! "${occ_cmd[@]}" ldap:show-config "${config_id}" >/dev/null 2>&1; then
+    echo "Configuration ${config_id} not found; creating new LDAP configuration."
+    local create_output
+    if ! create_output=$("${occ_cmd[@]}" ldap:create-empty-config 2>&1); then
+      echo "Failed to create new LDAP configuration: ${create_output}" >&2
+      return 1
+    fi
+    local created_id
+    created_id=$(grep -oE 's[0-9]+' <<<"${create_output}" | head -n 1)
+    if [[ -z "${created_id}" ]]; then
+      echo "Unable to determine configuration identifier from creation output: ${create_output}" >&2
+      return 1
+    fi
+    if [[ "${created_id}" != "${config_id}" ]]; then
+      echo "Created configuration ${created_id}; continuing with that identifier." >&2
+      echo "Update the Configuration variable or pass ${created_id} as the second argument for future runs." >&2
+      config_id="${created_id}"
+    fi
+  else
+    if [[ -t 0 && -t 1 ]]; then
+      local overwrite_response
+      read -r -p "Configuration ${config_id} exists. Overwrite settings? [y/N]: " overwrite_response
+      case "${overwrite_response}" in
+        [yY]|[yY][eE][sS]) ;;
+        *) echo "Aborting without applying LDAP settings."; return 0 ;;
+      esac
+    else
+      echo "Configuration ${config_id} exists. Overwrite confirmation not possible in non-interactive mode." >&2
+      return 1
+    fi
+  fi
+
   local -a config_keys=()
   while IFS= read -r var; do
     config_keys+=("${var}")
@@ -195,7 +229,6 @@ apply_ldap_config() {
     return 1
   fi
 
-  local -a occ_cmd=(docker exec --user www-data "${container}" php occ)
   for key in "${config_keys[@]}"; do
     local value="${!key}"
     if [[ -z "${value}" ]]; then
@@ -213,6 +246,45 @@ apply_ldap_config() {
   done
 
   echo "LDAP configuration ${config_id} applied to container ${container}."
+
+  local occ_display_cmd="docker exec --user www-data ${container} php occ"
+  echo "Before enabling, test this configuration using:"
+  echo "  ${occ_display_cmd} ldap:config-test ${config_id}"
+
+  if [[ -t 0 && -t 1 ]]; then
+    local enable_response desired_status
+    while true; do
+      read -r -p "Enable configuration ${config_id} now? [y/N]: " enable_response
+      case "${enable_response}" in
+        [yY]|[yY][eE][sS])
+          desired_status=1
+          break
+          ;;
+        [nN]|[nN][oO]|"")
+          desired_status=0
+          break
+          ;;
+        *)
+          echo "Please answer yes or no."
+          ;;
+      esac
+    done
+
+    if ! "${occ_cmd[@]}" ldap:set-config "${config_id}" ldapConfigurationActive "${desired_status}"; then
+      echo "Failed to update ldapConfigurationActive for configuration ${config_id}." >&2
+      return 1
+    fi
+
+    if [[ "${desired_status}" -eq 1 ]]; then
+      echo "LDAP configuration ${config_id} enabled."
+    else
+      echo "LDAP configuration ${config_id} disabled."
+    fi
+  else
+    echo "Non-interactive mode detected; adjust the configuration status manually:"
+    echo "  ${occ_display_cmd} ldap:set-config ${config_id} ldapConfigurationActive 1  # enable"
+    echo "  ${occ_display_cmd} ldap:set-config ${config_id} ldapConfigurationActive 0  # disable"
+  fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
