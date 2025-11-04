@@ -69,7 +69,7 @@ ldapBackupPort=
 # ldapBase defines the base distinguished name for LDAP queries (e.g., dc=example,dc=com).
 ldapBase="dc=1233lab,dc=local"
 # ldapBaseGroups narrows group searches to a specific organizational unit DN.
-ldapBaseGroups="CN=Nextcloud_Group1,OU=1233_Groups,OU=1233-dev,DC=1233lab,DC=local"
+ldapBaseGroups="ou=1233_Groups,ou=1233-dev,ou=1233lab,dc=local"
 # ldapBaseUsers narrows user searches to a specific organizational unit DN.
 ldapBaseUsers="ou=general_users,dc=1233lab,dc=local"
 # ldapCacheTTL sets the LDAP cache time-to-live in seconds.
