@@ -69,7 +69,7 @@ ldapBackupPort=
 # ldapBase defines the base distinguished name for LDAP queries (e.g., dc=example,dc=com).
 ldapBase="dc=1233lab,dc=local"
 # ldapBaseGroups narrows group searches to a specific organizational unit DN.
-ldapBaseGroups="ou=1233_Groups,ou=1233-dev,ou=1233lab,dc=local"
+ldapBaseGroups="ou=1233_Groups,ou=1233-dev,dc=1233lab,dc=local"
 # ldapBaseUsers narrows user searches to a specific organizational unit DN.
 ldapBaseUsers="ou=general_users,dc=1233lab,dc=local"
 # ldapCacheTTL sets the LDAP cache time-to-live in seconds.
@@ -159,6 +159,7 @@ ldapUuidUserAttribute=auto
 # markRemnantsAsDisabled defines whether orphaned LDAP accounts are flagged as disabled (0 or 1).
 markRemnantsAsDisabled=0
 # turnOffCertCheck disables certificate validation for LDAP connections (0 recommended, 1 to bypass).
+# Default to 0; certificate validation is enforced once the trusted root is installed inside the container.
 turnOffCertCheck=0
 # turnOnPasswordChange enables password changes through Nextcloud when supported (0 disabled, 1 enabled).
 turnOnPasswordChange=0
