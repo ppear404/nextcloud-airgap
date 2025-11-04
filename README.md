@@ -90,6 +90,13 @@ Use `scripts/collect-logs.sh` to stream each container's stdout/stderr into indi
 
 Each run truncates the previous file (for example `logs/containers/nextcloud-app.log`) before appending new output, which helps keep snapshots focused on the current debugging session.
 
+## LDAP Configuration Workflow
+- Confirm connectivity and attribute choices from the host with `./scripts/enum_ldap.sh`. Supply `--uri`, `--bind-dn`, `--bind-pw`, `--base-dn`, `--page-size`, or `--ca-file` to override defaults discovered in development; the script depends on `ldapsearch` (install `ldap-utils` or `openldap-clients` if needed).
+- Prime the Nextcloud container for LDAPS trust: `./scripts/prepare-ldap-container.sh --host dc1.1233lab.local --ip 10.1.154.202`. This copies the root CA from `/certs`, updates `/etc/ldap/ldap.conf`, and refreshes `/etc/hosts` so the container resolves the directory server even without DNS.
+- Apply settings with `./scripts/apply-ldap-config.sh [container] [configId]`. Defaults are `nextcloud-app` and the `Configuration` variable at the top of the script (currently `s01`). The script echoes each key it writes and asks before enabling the connector.
+- Validate immediately afterwards by running `./scripts/test_discover_container_ldap.sh [container] [configId]`. It reruns the container preparation (if necessary), performs a bind/search probe, and executes `occ ldap:config-test` so you catch TLS or credential issues before users are impacted.
+- Repeat the prepare/test cycle whenever certificates, host IPs, or LDAP credentials change. Leave the configuration disabled (`ldapConfigurationActive=0`) until both tests succeed.
+
 ## Setup Cron to call the cron.php file every 5 minutes (vendor recommendation)
 
 ### Test directly inside the container
@@ -101,6 +108,5 @@ docker exec -u www-data nextcloud-app php -f /var/www/html/cron.php
 ```bash
 */5 * * * * docker exec -u www-data nextcloud-app-1 php -f /var/www/html/cron.php
 ```
-
 
 
