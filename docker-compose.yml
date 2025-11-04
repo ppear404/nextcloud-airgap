@@ -49,6 +49,8 @@ services:
       - SSL_CERT_FILE=${SSL_CERT_FILE:-/certs/custom-ca-bundle.pem}
       - CURL_CA_BUNDLE=${CURL_CA_BUNDLE:-/certs/custom-ca-bundle.pem}
       - REQUESTS_CA_BUNDLE=${REQUESTS_CA_BUNDLE:-/certs/custom-ca-bundle.pem}
+      - LDAPTLS_CACERT=${LDAPTLS_CACERT:-/certs/custom-ca-bundle.pem}
+      - LDAPTLS_REQCERT=${LDAPTLS_REQCERT:-demand}
       - HP_SHARED_KEY=${HP_SHARED_KEY}
       # Collabora Online settings
       - COLLABORA_ENABLE=${COLLABORA_ENABLE:-true}

@@ -71,7 +71,7 @@ ldapBase="dc=1233lab,dc=local"
 # ldapBaseGroups narrows group searches to a specific organizational unit DN.
 ldapBaseGroups="ou=1233_Groups,ou=1233-dev,dc=1233lab,dc=local"
 # ldapBaseUsers narrows user searches to a specific organizational unit DN.
-ldapBaseUsers="ou=general_users,dc=1233lab,dc=local"
+ldapBaseUsers="ou=general_users,ou=1233-dev,dc=1233lab,dc=local"
 # ldapCacheTTL sets the LDAP cache time-to-live in seconds.
 ldapCacheTTL=600
 # ldapConfigurationActive toggles whether this LDAP configuration is active (0 disabled, 1 enabled).
@@ -109,7 +109,7 @@ ldapGroupFilterObjectclass=
 # ldapGroupMemberAssocAttr defines the attribute that lists group member DNs.
 ldapGroupMemberAssocAttr=
 # ldapHost is the primary LDAP server URI (e.g., ldap://host or ldaps://host).
-ldapHost="ldaps://dc1.1233lab.local"
+ldapHost="dc1.1233lab.local"
 # ldapIgnoreNamingRules allows bypassing Nextcloud naming restrictions for users and groups (0 or 1).
 ldapIgnoreNamingRules=
 # ldapLoginFilter specifies the LDAP filter template used when users log in.

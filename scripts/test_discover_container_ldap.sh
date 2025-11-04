@@ -4,6 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APPLY_SCRIPT="${SCRIPT_DIR}/apply-ldap-config.sh"
+PREPARE_SCRIPT="${SCRIPT_DIR}/prepare-ldap-container.sh"
 
 if [[ -f "${APPLY_SCRIPT}" ]]; then
   # shellcheck disable=SC1090
@@ -32,36 +33,6 @@ ensure_container_running() {
     log "Container ${container} is not running. Start the stack before testing LDAP."
     exit 1
   fi
-}
-
-ensure_ldap_ca_trust() {
-  if [[ -z "${LDAP_CA_FILE}" ]]; then
-    log "LDAP_CA_FILE not set; skipping CA installation."
-    return 0
-  fi
-
-  if ! docker exec --user root "${container}" test -f "${LDAP_CA_FILE}"; then
-    log "LDAP CA file ${LDAP_CA_FILE} not present inside ${container}; skipping trust store update."
-    return 0
-  fi
-
-  if docker exec --user root "${container}" bash -lc "[[ -f '${LDAP_CA_DEST}' ]] && cmp -s '${LDAP_CA_FILE}' '${LDAP_CA_DEST}'"; then
-    log "LDAP CA certificate already installed in ${container}."
-    return 0
-  fi
-
-  log "Installing LDAP CA certificate from ${LDAP_CA_FILE} into ${container}."
-  if ! docker exec --user root "${container}" bash -lc "cp '${LDAP_CA_FILE}' '${LDAP_CA_DEST}' && chmod 644 '${LDAP_CA_DEST}' && update-ca-certificates >/dev/null"; then
-    log "Failed to install LDAP CA certificate into ${container}."
-    return 1
-  fi
-
-  local ldap_conf="/etc/ldap/ldap.conf"
-  docker exec --user root "${container}" bash -lc "grep -q \"^TLS_CACERT ${LDAP_CA_DEST//\//\\/}\$\" '${ldap_conf}' 2>/dev/null || echo 'TLS_CACERT ${LDAP_CA_DEST}' >> '${ldap_conf}'"
-  docker exec --user root "${container}" bash -lc "grep -q '^TLS_REQCERT' '${ldap_conf}' 2>/dev/null || echo 'TLS_REQCERT demand' >> '${ldap_conf}'"
-
-  log "LDAP CA certificate installed in ${container}."
-  return 0
 }
 
 compose_ldap_uri() {
@@ -176,9 +147,17 @@ main() {
   require_docker
   ensure_container_running
 
+  if [[ -x "${PREPARE_SCRIPT}" ]]; then
+    log "Preparing container for LDAP connectivity."
+    if ! "${PREPARE_SCRIPT}" --host "${ldapHost}" --ca-file "${LDAP_CA_FILE}" "${container}"; then
+      log "Container preparation reported issues."
+    fi
+  else
+    log "Preparation script ${PREPARE_SCRIPT} not found or not executable; skipping container preparation."
+  fi
+
   local overall_rc=0
 
-  ensure_ldap_ca_trust || overall_rc=1
   probe_ldap_connectivity || overall_rc=1
   run_occ_config_test || overall_rc=1
 
