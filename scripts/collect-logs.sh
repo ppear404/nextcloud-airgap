@@ -3,6 +3,8 @@ set -euo pipefail
 
 STACK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_DIR="${STACK_DIR}/logs/containers"
+NEXTCLOUD_APP_SERVICE="app"
+NEXTCLOUD_APP_LOG_PATH="/var/www/html/data/nextcloud.log"
 
 mkdir -p "${LOG_DIR}"
 
@@ -56,5 +58,33 @@ for svc in "${services[@]}"; do
   ) &
   pids+=("$!")
 done
+
+nextcloud_service_running=false
+for svc in "${services[@]}"; do
+  if [[ "${svc}" == "${NEXTCLOUD_APP_SERVICE}" ]]; then
+    nextcloud_service_running=true
+    break
+  fi
+done
+
+if [[ "${nextcloud_service_running}" == true ]]; then
+  nextcloud_log_file="${LOG_DIR}/nextcloud.log"
+  : >"${nextcloud_log_file}"
+  echo "Capturing Nextcloud application log -> ${nextcloud_log_file}"
+  (
+    if command -v stdbuf >/dev/null 2>&1; then
+      stdbuf -oL -eL "${COMPOSE_CMD[@]}" exec -T "${NEXTCLOUD_APP_SERVICE}" \
+        sh -c 'touch "$1" && tail -n0 -F "$1"' _ "${NEXTCLOUD_APP_LOG_PATH}" 2>&1 |
+        stdbuf -oL -eL sed "s/^/[nextcloud.log] /" >>"${nextcloud_log_file}"
+    else
+      "${COMPOSE_CMD[@]}" exec -T "${NEXTCLOUD_APP_SERVICE}" \
+        sh -c 'touch "$1" && tail -n0 -F "$1"' _ "${NEXTCLOUD_APP_LOG_PATH}" 2>&1 |
+        sed "s/^/[nextcloud.log] /" >>"${nextcloud_log_file}"
+    fi
+  ) &
+  pids+=("$!")
+else
+  echo "Skipping Nextcloud application log capture; service '${NEXTCLOUD_APP_SERVICE}' not running." >&2
+fi
 
 wait
