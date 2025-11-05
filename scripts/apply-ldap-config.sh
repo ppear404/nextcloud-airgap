@@ -153,7 +153,7 @@ ldapUserFilterMode=0
 # ldapUserFilterObjectclass limits user discovery to specific object classes.
 ldapUserFilterObjectclass="user"
 # ldapUuidGroupAttribute determines which attribute is used as the unique ID for groups (auto to let Nextcloud decide).
-ldapUuidGroupAttribute=auto
+ldapUuidGroupAttribute="sAMAccountName"
 # ldapUuidUserAttribute determines which attribute is used as the unique ID for users (auto to let Nextcloud decide).
 ldapUuidUserAttribute=auto
 # markRemnantsAsDisabled defines whether orphaned LDAP accounts are flagged as disabled (0 or 1).
