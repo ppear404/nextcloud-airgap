@@ -1,0 +1,79 @@
+root@fbb6d867bba1:/var/www/html# php -f /var/www/html/occ ldap:show-config
++-------------------------------+-----------------------------------------------------------------------+
+| Configuration                 | s01                                                                   |
++-------------------------------+-----------------------------------------------------------------------+
+| hasMemberOfFilterSupport      | 1                                                                     |
+| homeFolderNamingRule          |                                                                       |
+| lastJpegPhotoLookup           | 0                                                                     |
+| ldapAdminGroup                |                                                                       |
+| ldapAgentName                 | CN=ldap bind,OU=admins,OU=1233-dev,DC=1233lab,DC=local                |
+| ldapAgentPassword             | ***                                                                   |
+| ldapAttributeAddress          |                                                                       |
+| ldapAttributeAnniversaryDate  |                                                                       |
+| ldapAttributeBiography        |                                                                       |
+| ldapAttributeBirthDate        |                                                                       |
+| ldapAttributeFediverse        |                                                                       |
+| ldapAttributeHeadline         |                                                                       |
+| ldapAttributeOrganisation     | description                                                           |
+| ldapAttributePhone            | telephonenumber                                                       |
+| ldapAttributePronouns         |                                                                       |
+| ldapAttributeRole             | title                                                                 |
+| ldapAttributeTwitter          |                                                                       |
+| ldapAttributeWebsite          |                                                                       |
+| ldapAttributesForGroupSearch  |                                                                       |
+| ldapAttributesForUserSearch   |                                                                       |
+| ldapBackgroundHost            |                                                                       |
+| ldapBackgroundPort            |                                                                       |
+| ldapBackupHost                |                                                                       |
+| ldapBackupPort                | 636                                                                   |
+| ldapBase                      | DC=1233lab,DC=local                                                   |
+| ldapBaseGroups                | OU=1233_Groups,OU=1233-dev,DC=1233lab,DC=local                        |
+| ldapBaseUsers                 | OU=general_users,OU=1233-dev,DC=1233lab,DC=local                      |
+| ldapCacheTTL                  | 600                                                                   |
+| ldapConfigurationActive       | 1                                                                     |
+| ldapConnectionTimeout         | 15                                                                    |
+| ldapDefaultPPolicyDN          |                                                                       |
+| ldapDynamicGroupMemberURL     |                                                                       |
+| ldapEmailAttribute            | mail                                                                  |
+| ldapExperiencedAdmin          | 0                                                                     |
+| ldapExpertUUIDGroupAttr       |                                                                       |
+| ldapExpertUUIDUserAttr        |                                                                       |
+| ldapExpertUsernameAttr        |                                                                       |
+| ldapExtStorageHomeAttribute   |                                                                       |
+| ldapGidNumber                 | gidnumber                                                             |
+| ldapGroupDisplayName          | cn                                                                    |
+| ldapGroupFilter               |                                                                       |
+| ldapGroupFilterGroups         |                                                                       |
+| ldapGroupFilterMode           | 1                                                                     |
+| ldapGroupFilterObjectclass    |                                                                       |
+| ldapGroupMemberAssocAttr      |                                                                       |
+| ldapHost                      | ldaps://dc1.1233lab.local                                             |
+| ldapIgnoreNamingRules         |                                                                       |
+| ldapLoginFilter               | (&(objectClass=user)(|(samaccountname=%uid)(|(sAMAccountName=%uid)))) |
+| ldapLoginFilterAttributes     | sAMAccountName                                                        |
+| ldapLoginFilterEmail          | 0                                                                     |
+| ldapLoginFilterMode           | 0                                                                     |
+| ldapLoginFilterUsername       | 1                                                                     |
+| ldapMatchingRuleInChainState  | yes                                                                   |
+| ldapNestedGroups              | 1                                                                     |
+| ldapOverrideMainServer        |                                                                       |
+| ldapPagingSize                | 500                                                                   |
+| ldapPort                      | 636                                                                   |
+| ldapQuotaAttribute            |                                                                       |
+| ldapQuotaDefault              |                                                                       |
+| ldapTLS                       | 0                                                                     |
+| ldapUserAvatarRule            | default                                                               |
+| ldapUserDisplayName           | cn                                                                    |
+| ldapUserDisplayName2          |                                                                       |
+| ldapUserFilter                | (objectClass=user)                                                    |
+| ldapUserFilterGroups          |                                                                       |
+| ldapUserFilterMode            | 1                                                                     |
+| ldapUserFilterObjectclass     | user                                                                  |
+| ldapUuidGroupAttribute        | auto                                                                  |
+| ldapUuidUserAttribute         | auto                                                                  |
+| markRemnantsAsDisabled        | 0                                                                     |
+| turnOffCertCheck              | 0                                                                     |
+| turnOnPasswordChange          | 0                                                                     |
+| useMemberOfToDetectMembership | 1                                                                     |
++-------------------------------+-----------------------------------------------------------------------+
+root@fbb6d867bba1:/var/www/html# 

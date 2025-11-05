@@ -109,4 +109,7 @@ docker exec -u www-data nextcloud-app php -f /var/www/html/cron.php
 */5 * * * * docker exec -u www-data nextcloud-app-1 php -f /var/www/html/cron.php
 ```
 
+## Troubleshooting
+- DNS resolution is critical. Ensure that your containers can resolve the domain names used in your setup. You can add entries to your `/etc/hosts` file for local testing.
+
 

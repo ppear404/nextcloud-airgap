@@ -67,11 +67,11 @@ ldapBackupHost=
 # ldapBackupPort configures the port for the backup LDAP server.
 ldapBackupPort=
 # ldapBase defines the base distinguished name for LDAP queries (e.g., dc=example,dc=com).
-ldapBase="dc=1233lab,dc=local"
+ldapBase="DC=1233lab,DC=local"
 # ldapBaseGroups narrows group searches to a specific organizational unit DN.
-ldapBaseGroups="ou=1233_Groups,ou=1233-dev,dc=1233lab,dc=local"
+ldapBaseGroups="OU=1233_Groups,OU=1233-dev,DC=1233lab,DC=local"
 # ldapBaseUsers narrows user searches to a specific organizational unit DN.
-ldapBaseUsers="ou=general_users,ou=1233-dev,dc=1233lab,dc=local"
+ldapBaseUsers="OU=general_users,OU=1233-dev,DC=1233lab,DC=local"
 # ldapCacheTTL sets the LDAP cache time-to-live in seconds.
 ldapCacheTTL=600
 # ldapConfigurationActive toggles whether this LDAP configuration is active (0 disabled, 1 enabled).
@@ -145,7 +145,7 @@ ldapUserDisplayName=displayName
 # ldapUserDisplayName2 provides an optional secondary attribute as fallback for display names.
 ldapUserDisplayName2=
 # ldapUserFilter sets the LDAP filter that selects which users are available in Nextcloud.
-ldapUserFilter="(&(objectClass=user)(objectCategory=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))"
+ldapUserFilter="(&(objectClass=user)(objectCategory=person))"
 # ldapUserFilterGroups lists group DNs users must belong to for inclusion.
 ldapUserFilterGroups=
 # ldapUserFilterMode controls how the user filter operates (0 standard, 1 LDAP-only, 2 group-based).
